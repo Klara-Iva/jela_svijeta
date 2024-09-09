@@ -10,11 +10,13 @@ class TagSeeder extends Seeder
 {
     public function run()
     {
-        $faker = Faker::create();
+        $faker = Faker::create(); //TODO, make the Faker as a singleton
 
         foreach (range(1, 10) as $index) {
             $tag = Tag::create([
-                'slug' => $faker->unique()->slug,
+                'slug' => $faker->unique()->slug,  
+                //TODO->change the tags to numbers 
+                //filtering is done with tags id!!!
             ]);
 
           

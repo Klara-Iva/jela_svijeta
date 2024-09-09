@@ -69,21 +69,23 @@
             <tbody>
                 @foreach($dishes as $dish)
                 <tr>
-                    <td>{{ $dish->translations->firstWhere('locale', $currentLocale)->title ?? 'N/A' }}</td>
-                    <td>{{ $dish->translations->firstWhere('locale', $currentLocale)->description ?? 'N/A' }}</td>
-                    <td>   @if ($dish->category)
-                            {{ $dish->category->translations->firstWhere('locale', $currentLocale)->title ?? 'N/A' }}
-                        @else
-                            
-                        @endif</td>
+                    <td>{{ $dish['title'] ?? 'N/A' }}</td>
+                    <td>{{ $dish['description'] ?? 'N/A' }}</td>
                     <td>
-                        @foreach($dish->tags as $tag)
-                            {{ $tag->translations->firstWhere('locale', $currentLocale)->title ?? 'N/A' }}@if (!$loop->last), @endif
+                        @if ($dish['category'])
+                            {{ $dish['category']['title'] ?? 'N/A' }}
+                        @else
+                            N/A
+                        @endif
+                    </td>
+                    <td>
+                        @foreach($dish['tags'] as $tag)
+                            {{ $tag['title'] ?? 'N/A' }}@if (!$loop->last), @endif
                         @endforeach
                     </td>
                     <td>
-                        @foreach($dish->ingredients as $ingredient)
-                            {{ $ingredient->translations->firstWhere('locale', $currentLocale)->title ?? 'N/A' }}@if (!$loop->last), @endif
+                        @foreach($dish['ingredients'] as $ingredient)
+                            {{ $ingredient['title'] ?? 'N/A' }}@if (!$loop->last), @endif
                         @endforeach
                     </td>
                 </tr>
