@@ -4,24 +4,31 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Ingredient;
-use Faker\Factory as Faker;
+use Faker\Generator as Faker;
 
 class IngredientSeeder extends Seeder
 {
+
+    protected $faker;
+
+    public function __construct(Faker $faker){
+
+    $this->faker=$faker;
+    }
     public function run()
     {
-        $faker = Faker::create();
+        
 
         foreach (range(1, 10) as $index) {
             $ingredient = Ingredient::create([
-                'slug' => $faker->unique()->slug,
+                'slug' => $this->faker->unique()->slug,
             ]);
 
          
             foreach (['en', 'fr', 'hr'] as $locale) {
                 $ingredient->translations()->create([
                     'locale' => $locale,
-                    'title' => $faker->currencyCode(),
+                    'title' => $this->faker->currencyCode(),
                 ]);
             }
         }

@@ -13,14 +13,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+   
 
         $this->call([
             LanguageSeeder::class,
             CategorySeeder::class,
             TagSeeder::class,
             IngredientSeeder::class,
-            DishSeeder::class,
+
         ]);
     }
 }

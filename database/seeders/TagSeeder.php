@@ -4,18 +4,22 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Tag;
-use Faker\Factory as Faker;
+use Faker\Generator as Faker;
 
 class TagSeeder extends Seeder
 {
+    protected $faker;
+
+    public function __construct(Faker $faker){ $this->faker=$faker;}
+
     public function run()
     {
-        $faker = Faker::create(); //TODO, make the Faker as a singleton
+      
 
         foreach (range(1, 10) as $index) {
             $tag = Tag::create([
-                'slug' => $faker->unique()->slug,  
-                //TODO->change the tags to numbers 
+                'slug' => $this->faker->unique()->slug,  
+                //TODO->change the tags to numbers??
                 //filtering is done with tags id!!!
             ]);
 
@@ -23,7 +27,7 @@ class TagSeeder extends Seeder
             foreach (['en', 'fr', 'hr'] as $locale) {
                 $tag->translations()->create([
                     'locale' => $locale,
-                    'title' => $faker->safeColorName(),
+                    'title' => $this->faker->safeColorName(),
                 ]);
             }
         }

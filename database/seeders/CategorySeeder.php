@@ -2,30 +2,31 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Faker\Factory as Faker;
+use Faker\Generator as Faker;
 use App\Models\Category;
-use Illuminate\Support\Facades\DB; 
 
 class CategorySeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+    protected $faker;
+
+    public function __construct(Faker $faker)
+    {
+        $this->faker = $faker;
+    }
+
     public function run()
     {
-        $faker = Faker::create();
         foreach (range(1, 10) as $index) {
             $category = Category::create([
-                'slug' => $faker->unique()->slug,
-            ]);
+                'slug' => $this->faker->unique()->slug, 
+              ]);
 
             foreach (['en', 'fr', 'hr'] as $locale) {
                 $category->translations()->create([
                     'locale' => $locale,
-                    'title' => $faker->userName(),
-                ]);
+                    'title' => $this->faker->userName(),
+                      ]);
             }
         }
     }
