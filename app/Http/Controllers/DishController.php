@@ -17,6 +17,14 @@ class DishController extends Controller
 
         $lang = $validatedLanguage['lang']; //converts array into string
 
+
+
+
+        //TODO--validacija svih parametara koji se mogu unesti u url
+
+
+
+
         $perPage = $request->query('per_page', 15);
         $page = $request->query('page', 1);
         $categoryId = $request->query('category');
@@ -55,6 +63,8 @@ class DishController extends Controller
             $diffTimestamp = (int)$diffTime;
             $diffDateTime = date('Y-m-d H:i:s', $diffTimestamp);
 
+
+            //TODO-> deleted meals not showing with diff time
             $query->where(function (Builder $q) use ($diffDateTime) {
                 $q->where(function (Builder $q) use ($diffDateTime) {
                     $q->whereNotNull('deleted_at')
@@ -65,6 +75,9 @@ class DishController extends Controller
                 })->orWhere(function (Builder $q) use ($diffDateTime) {
                     $q->where('created_at', '>', $diffDateTime);
                 });
+
+
+
             });
         } else {
             $query->where('status', 'created');
