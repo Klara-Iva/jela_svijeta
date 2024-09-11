@@ -8,12 +8,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Facades\Validator;
 use Astrotomic\Translatable\Contracts\Translatable as TranslatableContract;
 use Astrotomic\Translatable\Translatable;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class Dish extends Model implements TranslatableContract
 {
     use Translatable;
+    use SoftDeletes;
 
-       public $translatedAttributes = ['title', 'description'];
+    public $translatedAttributes = ['title', 'description'];  
     protected $fillable = ['status', 'category_id']; 
 
     public function category()

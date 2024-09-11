@@ -9,14 +9,20 @@ use Illuminate\Database\Eloquent\Builder;
 class DishController extends Controller
 {
     public function index(Request $request)
-    {
-        $lang = $request->query('lang', 'en'); 
+    {   
+        //lang is a required parameter in URL
+        $validatedLanguage = $request->validate([
+            'lang' => 'required|string|size:2', 
+        ]);
+
+        $lang = $validatedLanguage['lang']; //converts array into string
 
         $perPage = $request->query('per_page', 15);
         $page = $request->query('page', 1);
         $categoryId = $request->query('category');
         $tags = $request->query('tags', []);
         $with = explode(',', $request->query('with', ''));
+        $diffTime = $request->query('diff_time');
 
         $query = Dish::query();
 
@@ -45,35 +51,68 @@ class DishController extends Controller
             $query->with('ingredients.translations');
         }
 
+        if ($diffTime) {
+            $diffTimestamp = (int)$diffTime;
+            $diffDateTime = date('Y-m-d H:i:s', $diffTimestamp);
+
+            $query->where(function (Builder $q) use ($diffDateTime) {
+                $q->where(function (Builder $q) use ($diffDateTime) {
+                    $q->whereNotNull('deleted_at')
+                      ->where('deleted_at', '>', $diffDateTime);
+                })->orWhere(function (Builder $q) use ($diffDateTime) {
+                    $q->whereNotNull('updated_at')
+                      ->where('updated_at', '>', $diffDateTime);
+                })->orWhere(function (Builder $q) use ($diffDateTime) {
+                    $q->where('created_at', '>', $diffDateTime);
+                });
+            });
+        } else {
+            $query->where('status', 'created');
+        }
 
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
-        $dishes = $paginator->map(function ($dish) use ($lang, $with) {
-            return [
+        $dishes = $paginator->map(function ($dish) use ($lang, $with, $diffTime) {
+      
+      
+
+            $result = [
                 'id' => $dish->id,
                 'title' => $dish->translate($lang)->title ?? 'N/A',
                 'description' => $dish->translate($lang)->description ?? 'N/A',
                 'status' => $dish->status,
-                'category' => in_array('category', $with) && $dish->category ? [
+            ];
+
+            if (in_array('category', $with) && $dish->category) {
+                $result['category'] = [
                     'id' => $dish->category->id,
                     'title' => $dish->category->translate($lang)->title ?? 'N/A',
                     'slug' => $dish->category->slug,
-                ] : null,
-                'tags' => in_array('tags', $with) ? $dish->tags->map(function ($tag) use ($lang) {
+                ];
+            }
+        
+            if (in_array('tags', $with)) {
+                $result['tags'] = $dish->tags->map(function ($tag) use ($lang) {
                     return [
                         'id' => $tag->id,
                         'title' => $tag->translate($lang)->title ?? 'N/A',
                         'slug' => $tag->slug,
                     ];
-                }) : [],
-                'ingredients' => in_array('ingredients', $with) ? $dish->ingredients->map(function ($ingredient) use ($lang) {
+                });
+            } 
+        
+            if (in_array('ingredients', $with)) {
+                $result['ingredients'] = $dish->ingredients->map(function ($ingredient) use ($lang) {
                     return [
                         'id' => $ingredient->id,
                         'title' => $ingredient->translate($lang)->title ?? 'N/A',
                         'slug' => $ingredient->slug,
+                     
                     ];
-                }) : [],
-            ];
+                });
+            } 
+
+            return $result;
         });
 
         return response()->json([
@@ -83,7 +122,15 @@ class DishController extends Controller
                 'itemsPerPage' => $paginator->perPage(),
                 'totalPages' => $paginator->lastPage(),
             ],
+
+
             'data' => $dishes,
+
+            'links'=>[
+                'prev' => $paginator->appends($request->query())->previousPageUrl(),//$paginator->previousPageUrl() doesnt include all written options in URL  by default
+                'next' => $paginator->appends($request->query())->nextPageUrl(),
+                'self' => $paginator->appends($request->query())->url($paginator->currentPage()), 
+            ],
         ]);
     }
 }

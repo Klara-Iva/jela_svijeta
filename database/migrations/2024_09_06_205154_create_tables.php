@@ -65,6 +65,7 @@ Schema::create('dishes', function (Blueprint $table) {
     $table->foreignId('category_id')->nullable()->constrained()->onDelete('set null');
     $table->string('status')->default('created');
     $table->timestamps();
+    $table->softDeletes();
 });
 
 Schema::create('dish_translations', function (Blueprint $table) {

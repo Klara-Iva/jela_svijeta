@@ -14,9 +14,10 @@ class DishSeeder extends Seeder
 {
     protected $faker;
     protected $languages;
+
     public function __construct(Faker $faker)
     {
-        $this->faker=$faker; 
+        $this->faker = $faker; 
     }
 
     public function run()
@@ -26,14 +27,34 @@ class DishSeeder extends Seeder
         //Faker doesnt have databse for food names and descriptions,
         //therefore for testing purposes, the data is filled with random words, 
         //mostly in English
-      
 
-        foreach (range(1, 10) as $index) {
+
+        foreach (range(1, 30) as $index) {
             $categoryId = $this->faker->boolean(70) ? Category::inRandomOrder()->first()->id : null;
 
+            $createdAt = $this->faker->dateTimeBetween('-11 years', 'now');
+            $updatedAt = null;
+            $deletedAt = null;
+
+            $status = $this->faker->randomElement(['created', 'modified', 'deleted']);
+
+            if ($status === 'created') {
+                $updatedAt = null;
+                $deletedAt = null;
+            } elseif ($status === 'modified') {
+                $updatedAt = $this->faker->dateTimeBetween($createdAt, 'now');
+            } elseif ($status === 'deleted') {
+                $time=$this->faker->dateTimeBetween($createdAt, 'now');
+                $deletedAt = $time;
+                $updatedAt = $time;
+            }
+
             $dish = Dish::create([
-                'status' => $this->faker->randomElement(['created', 'updated', 'deleted']),
+                'status' => $status,
                 'category_id' => $categoryId,
+                'created_at' =>  $createdAt ,
+                'updated_at' => $updatedAt,
+                'deleted_at' => $deletedAt,
             ]);
 
             foreach ($languages as $locale) {
