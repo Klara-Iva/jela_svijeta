@@ -12,12 +12,13 @@ use Illuminate\Support\Facades\DB;
 
 class DishSeeder extends Seeder
 {
-     protected $faker;
-protected $languages;
-     public function __construct(Faker $faker){
-        $this->faker=$faker;
-        
-     }
+    protected $faker;
+    protected $languages;
+    public function __construct(Faker $faker)
+    {
+        $this->faker=$faker; 
+    }
+
     public function run()
     {
 
@@ -36,13 +37,9 @@ protected $languages;
             ]);
 
             foreach ($languages as $locale) {
-
-
                 //Local faker used beacuse its needed for different languages
                 $localeFaker = \Faker\Factory::create($locale);
-
-
-                
+             
                 $dish->translations()->create([
                     'locale' => $locale,
                     'title' => $localeFaker->lexify('????????'),

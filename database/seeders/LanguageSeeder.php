@@ -14,7 +14,6 @@ class LanguageSeeder extends Seeder
      */
     public function run(): void
     {
-     
         $languages = [
             ['code' => 'en', 'name' => 'English'],
             ['code' => 'fr', 'name' => 'French'],

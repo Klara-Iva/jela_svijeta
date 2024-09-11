@@ -11,9 +11,7 @@ class Tag extends Model implements TranslatableContract
     use Translatable;
 
     protected $fillable = ['slug'];
-
     public $translatedAttributes = ['title'];
-
 
     public function dishes(): BelongsToMany
     {

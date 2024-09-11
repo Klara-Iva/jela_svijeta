@@ -13,12 +13,8 @@ class Dish extends Model implements TranslatableContract
 {
     use Translatable;
 
-   
-    public $translatedAttributes = ['title', 'description'];
-
-
+       public $translatedAttributes = ['title', 'description'];
     protected $fillable = ['status', 'category_id']; 
-
 
     public function category()
     {
