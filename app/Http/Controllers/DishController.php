@@ -83,7 +83,7 @@ class DishController extends Controller
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
         $dishes = $paginator->map(function ($dish) use ($lang, $with) {
-            return [
+            $result = [ 
                 'id' => $dish->id,
                 'title' => $dish->translate($lang)->title ?? 'N/A',
                 'description' => $dish->translate($lang)->description ?? 'N/A',
