@@ -10,29 +10,28 @@ class DishController extends Controller
 {
     public function index(Request $request)
     {   
-        //lang is a required parameter in URL
-        $validatedLanguage = $request->validate([
-            'lang' => 'required|string|size:2', 
+       
+        $validated = $request->validate([
+            'lang' => 'required|string|size:2',
+            'per_page' => 'sometimes|nullable|integer|min:1',
+            'page' => 'sometimes|nullable|integer|min:1',
+            'category' => 'sometimes|nullable|in:NULL,!NULL,integer',
+            'tags' => 'sometimes|nullable|string',
+            'with' => 'sometimes|nullable|string',
+            'diff_time' => 'sometimes|nullable|integer|min:1',
         ]);
 
-        $lang = $validatedLanguage['lang']; //converts array into string
+        $lang = $validated['lang']; // array to string
+
+        $perPage = $validated['per_page'] ?? 30;
+        $page = $validated['page'] ?? 1;
+        $categoryId = $validated['category'] ?? null;
+        $tags = $validated['tags'] ?? [];
+        $with = isset($validated['with']) ? explode(',', $validated['with']) : [];
+        $diffTime = $validated['diff_time'] ?? null;
 
 
-
-
-        //TODO--validacija svih parametara koji se mogu unesti u url
-
-
-
-
-        $perPage = $request->query('per_page', 15);
-        $page = $request->query('page', 1);
-        $categoryId = $request->query('category');
-        $tags = $request->query('tags', []);
-        $with = explode(',', $request->query('with', ''));
-        $diffTime = $request->query('diff_time');
-
-        $query = Dish::query();
+        $query = Dish::withTrashed(); //bc of Soft Deletes->deleted dishes not showing if not included this way
 
         if ($categoryId === 'NULL') {
             $query->whereNull('category_id');
@@ -63,21 +62,19 @@ class DishController extends Controller
             $diffTimestamp = (int)$diffTime;
             $diffDateTime = date('Y-m-d H:i:s', $diffTimestamp);
 
-
-            //TODO-> deleted meals not showing with diff time
             $query->where(function (Builder $q) use ($diffDateTime) {
                 $q->where(function (Builder $q) use ($diffDateTime) {
                     $q->whereNotNull('deleted_at')
-                      ->where('deleted_at', '>', $diffDateTime);
+                      ->where('deleted_at', '>', $diffDateTime)
+                      ->where('status', 'deleted');
                 })->orWhere(function (Builder $q) use ($diffDateTime) {
                     $q->whereNotNull('updated_at')
-                      ->where('updated_at', '>', $diffDateTime);
+                      ->where('updated_at', '>', $diffDateTime)
+                      ->where('status', 'modified');
                 })->orWhere(function (Builder $q) use ($diffDateTime) {
-                    $q->where('created_at', '>', $diffDateTime);
+                    $q->where('created_at', '>', $diffDateTime)
+                      ->where('status', 'created');
                 });
-
-
-
             });
         } else {
             $query->where('status', 'created');
@@ -85,11 +82,8 @@ class DishController extends Controller
 
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);
 
-        $dishes = $paginator->map(function ($dish) use ($lang, $with, $diffTime) {
-      
-      
-
-            $result = [
+        $dishes = $paginator->map(function ($dish) use ($lang, $with) {
+            return [
                 'id' => $dish->id,
                 'title' => $dish->translate($lang)->title ?? 'N/A',
                 'description' => $dish->translate($lang)->description ?? 'N/A',
