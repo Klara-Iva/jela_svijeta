@@ -2,15 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\DishRequest;
 use Illuminate\Http\Request;
 use App\Models\Dish;
+
 use Illuminate\Database\Eloquent\Builder;
 
 class DishController extends Controller
 {
     public function index(Request $request)
-    {   
-       
+    {
+        $validated = $this->validateRequest($request);
+
+        $paginator = $this->buildDishQuery($validated);
+
+        $dishes = $this->ObradiWith($paginator, $validated['lang'], $validated['with']);
+
+        $data = $this->makeJSON($paginator, $dishes, $request);
+
+        return $data;
+
+    }
+
+    public function validateRequest(Request $request)
+    {
+
         $validated = $request->validate([
             'lang' => 'required|string|size:2',
             'per_page' => 'sometimes|nullable|integer|min:1',
@@ -21,15 +37,26 @@ class DishController extends Controller
             'diff_time' => 'sometimes|nullable|integer|min:1',
         ]);
 
-        $lang = $validated['lang']; // array to string
+        return [
+            'lang' => $validated['lang'],
+            'perPage' => $validated['per_page'] ?? 30,
+            'page' => $validated['page'] ?? 1,
+            'categoryId' => $validated['category'] ?? null,
+            'tags' => isset($validated['tags']) ? explode(',', $validated['tags']) : [],
+            'with' => isset($validated['with']) ? explode(',', $validated['with']) : [],
+            'diffTime' => $validated['diff_time'] ?? null
+        ];
 
-        $perPage = $validated['per_page'] ?? 30;
-        $page = $validated['page'] ?? 1;
-        $categoryId = $validated['category'] ?? null;
-        $tags = $validated['tags'] ?? [];
-        $with = isset($validated['with']) ? explode(',', $validated['with']) : [];
-        $diffTime = $validated['diff_time'] ?? null;
+    }
+    public function buildDishQuery($validated)
+    {
 
+        $categoryId = $validated['categoryId'];
+        $tags = $validated['tags'];
+        $with = $validated['with'];
+        $diffTime = $validated['diffTime'];
+        $perPage = $validated['perPage'];
+        $page = $validated['page'];
 
         $query = Dish::withTrashed(); //bc of Soft Deletes->deleted dishes not showing if not included this way
 
@@ -44,7 +71,7 @@ class DishController extends Controller
         if (!empty($tags)) {
             $tagIds = explode(',', $tags);
             $query->whereHas('tags', function ($q) use ($tagIds) {
-                $q->whereIn('tags.id', $tagIds); 
+                $q->whereIn('tags.id', $tagIds);
             });
         }
 
@@ -59,31 +86,36 @@ class DishController extends Controller
         }
 
         if ($diffTime) {
-            $diffTimestamp = (int)$diffTime;
+            $diffTimestamp = (int) $diffTime;
             $diffDateTime = date('Y-m-d H:i:s', $diffTimestamp);
 
             $query->where(function (Builder $q) use ($diffDateTime) {
                 $q->where(function (Builder $q) use ($diffDateTime) {
                     $q->whereNotNull('deleted_at')
-                      ->where('deleted_at', '>', $diffDateTime)
-                      ->where('status', 'deleted');
+                        ->where('deleted_at', '>', $diffDateTime)
+                        ->where('status', 'deleted');
                 })->orWhere(function (Builder $q) use ($diffDateTime) {
                     $q->whereNotNull('updated_at')
-                      ->where('updated_at', '>', $diffDateTime)
-                      ->where('status', 'modified');
+                        ->where('updated_at', '>', $diffDateTime)
+                        ->where('status', 'modified');
                 })->orWhere(function (Builder $q) use ($diffDateTime) {
                     $q->where('created_at', '>', $diffDateTime)
-                      ->where('status', 'created');
+                        ->where('status', 'created');
                 });
             });
         } else {
             $query->where('status', 'created');
         }
 
-        $paginator = $query->paginate($perPage, ['*'], 'page', $page);
+        return $query->paginate($perPage, ['*'], 'page', $page);
+    }
 
-        $dishes = $paginator->map(function ($dish) use ($lang, $with) {
-            $result = [ 
+
+    public function ObradiWith($paginator, $lang, $with)
+    {
+
+        return $paginator->map(function ($dish) use ($lang, $with) {
+            $result = [
                 'id' => $dish->id,
                 'title' => $dish->translate($lang)->title ?? 'N/A',
                 'description' => $dish->translate($lang)->description ?? 'N/A',
@@ -97,7 +129,7 @@ class DishController extends Controller
                     'slug' => $dish->category->slug,
                 ];
             }
-        
+
             if (in_array('tags', $with)) {
                 $result['tags'] = $dish->tags->map(function ($tag) use ($lang) {
                     return [
@@ -106,22 +138,27 @@ class DishController extends Controller
                         'slug' => $tag->slug,
                     ];
                 });
-            } 
-        
+            }
+
             if (in_array('ingredients', $with)) {
                 $result['ingredients'] = $dish->ingredients->map(function ($ingredient) use ($lang) {
                     return [
                         'id' => $ingredient->id,
                         'title' => $ingredient->translate($lang)->title ?? 'N/A',
                         'slug' => $ingredient->slug,
-                     
+
                     ];
                 });
-            } 
+            }
 
             return $result;
         });
 
+    }
+
+
+    private function makeJSON($paginator, $dishes, $request)
+    {
         return response()->json([
             'meta' => [
                 'currentPage' => $paginator->currentPage(),
@@ -133,11 +170,12 @@ class DishController extends Controller
 
             'data' => $dishes,
 
-            'links'=>[
+            'links' => [
                 'prev' => $paginator->appends($request->query())->previousPageUrl(),//$paginator->previousPageUrl() doesnt include all written options in URL  by default
                 'next' => $paginator->appends($request->query())->nextPageUrl(),
-                'self' => $paginator->appends($request->query())->url($paginator->currentPage()), 
+                'self' => $paginator->appends($request->query())->url($paginator->currentPage()),
             ],
         ]);
     }
+
 }

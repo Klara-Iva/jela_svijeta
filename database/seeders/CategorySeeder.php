@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Faker\Generator as Faker;
 use App\Models\Category;
-use Illuminate\Support\Facades\DB;
 use App\Helpers\SeederHelper;
 
 class CategorySeeder extends Seeder
@@ -19,11 +18,11 @@ class CategorySeeder extends Seeder
     }
 
     public function run()
-    { 
+    {
         SeederHelper::createWithTranslations(
-        Category::class,
-        'userName',
-        $this->faker
+            Category::class,
+            'userName',
+            $this->faker
         );
     }
 }

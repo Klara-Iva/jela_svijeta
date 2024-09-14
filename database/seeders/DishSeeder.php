@@ -17,7 +17,7 @@ class DishSeeder extends Seeder
 
     public function __construct(Faker $faker)
     {
-        $this->faker = $faker; 
+        $this->faker = $faker;
     }
 
     public function run()
@@ -44,7 +44,7 @@ class DishSeeder extends Seeder
             } elseif ($status === 'modified') {
                 $updatedAt = $this->faker->dateTimeBetween($createdAt, 'now');
             } elseif ($status === 'deleted') {
-                $time=$this->faker->dateTimeBetween($createdAt, 'now');
+                $time = $this->faker->dateTimeBetween($createdAt, 'now');
                 $deletedAt = $time;
                 $updatedAt = $time;
             }
@@ -52,7 +52,7 @@ class DishSeeder extends Seeder
             $dish = Dish::create([
                 'status' => $status,
                 'category_id' => $categoryId,
-                'created_at' =>  $createdAt ,
+                'created_at' => $createdAt,
                 'updated_at' => $updatedAt,
                 'deleted_at' => $deletedAt,
             ]);
@@ -60,7 +60,7 @@ class DishSeeder extends Seeder
             foreach ($languages as $locale) {
                 //Local faker used beacuse its needed for different languages
                 $localeFaker = \Faker\Factory::create($locale);
-             
+
                 $dish->translations()->create([
                     'locale' => $locale,
                     'title' => $localeFaker->lexify('????????'),

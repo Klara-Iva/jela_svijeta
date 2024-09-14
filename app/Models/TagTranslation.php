@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class TagTranslation extends Model
 {
     public $timestamps = false;
-    protected $fillable = ['title']; 
+    protected $fillable = ['title'];
 
     public function tag()
     {

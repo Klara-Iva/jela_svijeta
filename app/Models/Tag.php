@@ -18,7 +18,7 @@ class Tag extends Model implements TranslatableContract
         return $this->belongsToMany(Dish::class, 'dish_tag');
     }
 
-  
+
 }
 
 

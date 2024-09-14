@@ -20,10 +20,10 @@ class ListDishes extends Command
         $dishes = Dish::withTrashed()->get();
 
         foreach ($dishes as $dish) {
-            $this->info('ID: '.$dish->id);
+            $this->info('ID: ' . $dish->id);
             $this->info('Title: ' . $dish->title);
             $this->info('Status: ' . $dish->status);
-            $this->info('Deleted At: ' . $dish->deleted_at); 
+            $this->info('Deleted At: ' . $dish->deleted_at);
             $this->info('---'); // Separator
         }
     }

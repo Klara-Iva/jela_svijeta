@@ -16,8 +16,8 @@ class Dish extends Model implements TranslatableContract
     use Translatable;
     use SoftDeletes;
 
-    public $translatedAttributes = ['title', 'description'];  
-    protected $fillable = ['status', 'category_id']; 
+    public $translatedAttributes = ['title', 'description'];
+    protected $fillable = ['status', 'category_id'];
 
     public function category()
     {

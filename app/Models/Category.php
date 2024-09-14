@@ -18,6 +18,6 @@ class Category extends Model implements TranslatableContract
         return $this->hasMany(Dish::class);
     }
 
-   
+
 }
 
