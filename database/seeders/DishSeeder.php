@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Tag;
 use App\Models\Ingredient;
 use Faker\Generator as Faker;
+
 use Illuminate\Support\Facades\DB;
 
 class DishSeeder extends Seeder
@@ -58,13 +59,10 @@ class DishSeeder extends Seeder
             ]);
 
             foreach ($languages as $locale) {
-                //Local faker used beacuse its needed for different languages
-                $localeFaker = \Faker\Factory::create($locale);
-
                 $dish->translations()->create([
                     'locale' => $locale,
-                    'title' => $localeFaker->lexify('????????'),
-                    'description' => $localeFaker->realText(60),
+                    'title' => $this->faker->lexify('????????'),
+                    'description' => $this->faker->realText(60),
                 ]);
             }
 
